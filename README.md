@@ -8,10 +8,13 @@
 [![Skills](https://img.shields.io/badge/skills-10-blue)](#命令一览)
 [![Zero Dependency](https://img.shields.io/badge/scripts-zero--dependency-success)](#三级校验体系)
 [![Design Tokens](https://img.shields.io/badge/design-token%20driven-orange)](#设计规范六层全覆盖)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green)](./LICENSE)
 
 面向 AI 时代的产品设计工作流 · Claude Code Skill 套件
 
 需求分析 → 竞品分析 → PRD 定义 → 评审追问 → 原型设计 → 机械化校验 → 版本入库
+
+**中文** · [English](./README.en.md)
 
 </div>
 
@@ -112,7 +115,10 @@ registry/ids.md         编号登记簿 —— 唯一性权威
 ## 快速开始
 
 ```bash
-# 安装到项目（复制 10 个 skill 到 <project>/.claude/skills/）
+# 方式一：skills CLI（推荐，https://skills.sh 生态）
+npx skills add liyizhecn/prodesign
+
+# 方式二：安装脚本（复制 10 个 skill 到 <project>/.claude/skills/）
 git clone --depth 1 git@github.com:liyizhecn/prodesign.git /tmp/prodesign \
   && bash /tmp/prodesign/install.sh /path/to/your/project \
   && rm -rf /tmp/prodesign
