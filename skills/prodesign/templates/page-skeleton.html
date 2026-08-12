@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="page-type" content="skeleton"><!-- 新页必改：list|detail|form|dashboard|result（见 reference/patterns.md） -->
+<title>页面骨架基座 · <产品名></title>
+<!--
+  ═══════════════════════════════════════════════════════════════════
+  prodesign 页面骨架基座（唯一事实源）
+  ═══════════════════════════════════════════════════════════════════
+  用途：本文件是本产品所有原型页的起点与设计规范活文档。
+  · 首版实例化：改 <产品名>、菜单项、种子层色值（--seed-*），组件样式按需微调。
+  · 新建原型页：复制本文件 → 删掉「组件样例区」→ 写页面内容。不要抄相邻页。
+  · token 纪律（validate 机械拦截）：
+      1) 一切色值（hex/rgb/hsl/渐变）只允许出现在下方 :root 令牌层；
+      2) 组件样式只引用 var(--*)，语义层（alias）优先；
+      3) 页面需要新 token 或新组件样式 → 先加进本骨架，再回到页面使用
+         （校验器会断言每页 :root 与骨架逐条一致，私自增删改即漂移）。
+  · 三层结构：seed（设计输入，改主题只动这层）→ map（算法/手工派生的梯度）
+    → alias（按用途命名，组件消费层）。参考 Ant Design v5 token 模型。
+  · 页型速查（详见 reference/patterns.md，新页必须声明 page-type）：
+      list      列表页：页头 → 筛选区 → 工具栏 → 表格 → 分页
+      detail    详情页：详情头 → 描述列表 → 分组内容(Tab/卡片) → 历史
+      form      表单页：抽屉优先；必填在前分组排列；失焦校验；具体动词主按钮
+      dashboard 仪表盘：统计卡行 → 图表区(色阶用 --chart-*) → 排行下钻
+      result    异常/结果页：居中 图标+结论+原因+出路
+  · 文案与数据格式（时间/空值—/脱敏/按钮动词/状态词）见 reference/content-spec.md。
+-->
+<style>
+/* ═══════════════ 一、设计令牌（全文件唯一允许出现色值的地方）═══════════════ */
+:root{
+  /* ── 1. 种子层 seed：真正的设计输入 ── */
+  --seed-primary:#1677ff;
+  --seed-danger:#ff4d4f;
+  --seed-warning:#faad14;
+  --seed-success:#52c41a;
+  --seed-radius:6px;
+  --seed-font:14px;
+  --seed-font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+
+  /* ── 2. 派生层 map：由种子推导的梯度与中性色 ── */
+  --primary-hover:#4096ff;
+  --primary-active:#0958d9;
+  --primary-bg:#e6f4ff;
+  --primary-border:#91caff;
+  --danger-hover:#ff7875;
+  --danger-bg:#fff2f0;
+  --danger-border:#ffccc7;
+  --warning-bg:#fffbe6;
+  --warning-border:#ffe58f;
+  --success-bg:#f6ffed;
+  --success-border:#b7eb8f;
+  --text-1:rgba(0,0,0,.88);          /* 主文本 */
+  --text-2:rgba(0,0,0,.65);          /* 次文本 */
+  --text-3:rgba(0,0,0,.45);          /* 辅助/占位 */
+  --text-disabled:rgba(0,0,0,.25);
+  --text-inverse:#ffffff;
+  --border:#d9d9d9;
+  --border-light:#f0f0f0;
+  --bg-page:#f5f5f5;
+  --bg-container:#ffffff;
+  --bg-hover:rgba(0,0,0,.04);
+  --bg-disabled:rgba(0,0,0,.04);
+  --mask:rgba(0,0,0,.45);
+  --shadow-1:0 1px 2px rgba(0,0,0,.06);
+  --shadow-drawer:-6px 0 16px rgba(0,0,0,.08);
+  --shadow-modal:0 6px 16px rgba(0,0,0,.12);
+  --shadow-pop:0 3px 6px -4px rgba(0,0,0,.12),0 6px 16px rgba(0,0,0,.08);
+  --focus-ring:0 0 0 2px rgba(22,119,255,.2);
+  --skeleton-shimmer:linear-gradient(90deg,rgba(0,0,0,.06) 25%,rgba(0,0,0,.12) 37%,rgba(0,0,0,.06) 63%);
+
+  /* ── 3. 语义层 alias：按用途命名，组件只消费这一层与 map 的通用项 ── */
+  --menu-selected-bg:var(--primary-bg);
+  --menu-selected-color:var(--seed-primary);
+  --table-header-bg:#fafafa;
+  --table-row-selected:var(--primary-bg);
+  --tag-high-color:var(--seed-danger);   --tag-high-bg:var(--danger-bg);   --tag-high-border:var(--danger-border);
+  --tag-mid-color:var(--seed-warning);   --tag-mid-bg:var(--warning-bg);   --tag-mid-border:var(--warning-border);
+  --tag-low-color:var(--text-2);         --tag-low-bg:var(--bg-page);      --tag-low-border:var(--border);
+  --tag-ok-color:var(--seed-success);    --tag-ok-bg:var(--success-bg);    --tag-ok-border:var(--success-border);
+  --tag-info-color:var(--seed-primary);  --tag-info-bg:var(--primary-bg);  --tag-info-border:var(--primary-border);
+  --dot-success:var(--seed-success);
+  --dot-error:var(--seed-danger);
+  --dot-processing:var(--seed-primary);
+  --dot-warning:var(--seed-warning);
+  --dot-default:#d9d9d9;
+}
+
+/* ═══════════════ 二、基座与布局（结构类名为校验器断言对象，勿改名）═══════════════ */
+*{box-sizing:border-box;margin:0;padding:0}
+body{font:var(--seed-font)/1.6 var(--seed-font-family);color:var(--text-1);background:var(--bg-page)}
+.app{display:flex;min-height:100vh}
+.sidebar{width:220px;flex:none;background:var(--bg-container);border-right:1px solid var(--border-light);display:flex;flex-direction:column}
+.brand{height:56px;display:flex;align-items:center;padding:0 20px;font-size:16px;font-weight:600;border-bottom:1px solid var(--border-light)}
+.brand .logo{width:24px;height:24px;border-radius:var(--seed-radius);background:var(--seed-primary);margin-right:10px}
+.menu{padding:8px;flex:1;overflow:auto}
+.menu-item{display:block;padding:9px 12px;margin-bottom:2px;border-radius:var(--seed-radius);color:var(--text-1);text-decoration:none;cursor:pointer}
+.menu-item:hover{background:var(--bg-hover)}
+.menu-item.active{background:var(--menu-selected-bg);color:var(--menu-selected-color);font-weight:500}
+.main{flex:1;display:flex;flex-direction:column;min-width:0}
+.topbar{height:56px;flex:none;background:var(--bg-container);border-bottom:1px solid var(--border-light);display:flex;align-items:center;padding:0 24px;gap:16px}
+.breadcrumb{color:var(--text-3)}
+.breadcrumb b{color:var(--text-1);font-weight:500}
+.topbar-spacer{flex:1}
+.bell{position:relative;cursor:pointer;color:var(--text-2);padding:4px 8px}
+.bell .badge{position:absolute;top:-2px;right:-2px;min-width:16px;height:16px;line-height:16px;text-align:center;font-size:11px;border-radius:8px;background:var(--seed-danger);color:var(--text-inverse);padding:0 4px}
+.avatar{width:28px;height:28px;border-radius:50%;background:var(--primary-bg);color:var(--seed-primary);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600}
+.content{flex:1;padding:24px;overflow:auto}
+.page-title{font-size:20px;font-weight:600;margin-bottom:4px}
+.page-desc{color:var(--text-3);margin-bottom:20px}
+.card{background:var(--bg-container);border:1px solid var(--border-light);border-radius:var(--seed-radius);padding:20px;margin-bottom:16px}
+.card h2{font-size:15px;font-weight:600;margin-bottom:14px}
+.row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+
+/* ═══════════════ 三、组件样式库 ═══════════════ */
+/* 按钮 */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:5px 15px;border-radius:var(--seed-radius);border:1px solid var(--border);background:var(--bg-container);color:var(--text-1);font-size:var(--seed-font);cursor:pointer}
+.btn:hover{color:var(--primary-hover);border-color:var(--primary-hover)}
+.btn-primary{background:var(--seed-primary);border-color:var(--seed-primary);color:var(--text-inverse)}
+.btn-primary:hover{background:var(--primary-hover);border-color:var(--primary-hover);color:var(--text-inverse)}
+.btn-danger{background:var(--seed-danger);border-color:var(--seed-danger);color:var(--text-inverse)}
+.btn-danger:hover{background:var(--danger-hover);border-color:var(--danger-hover);color:var(--text-inverse)}
+.btn-text{border-color:transparent;background:transparent;color:var(--seed-primary)}
+.btn-text:hover{background:var(--primary-bg);border-color:transparent}
+.btn[disabled]{background:var(--bg-disabled);border-color:var(--border);color:var(--text-disabled);cursor:not-allowed}
+.btn-sm{padding:1px 8px;font-size:12px}
+/* 表单 */
+.form-item{margin-bottom:16px}
+.form-item>label{display:block;margin-bottom:6px;color:var(--text-1)}
+.form-item>label .req{color:var(--seed-danger);margin-right:4px}
+.input,.select,.textarea{width:100%;padding:5px 11px;border:1px solid var(--border);border-radius:var(--seed-radius);font:inherit;color:var(--text-1);background:var(--bg-container)}
+.input:focus,.select:focus,.textarea:focus{outline:none;border-color:var(--seed-primary);box-shadow:var(--focus-ring)}
+.input::placeholder{color:var(--text-3)}
+.form-help{font-size:12px;color:var(--text-3);margin-top:4px}
+.form-error{font-size:12px;color:var(--seed-danger);margin-top:4px}
+.checkbox{accent-color:var(--seed-primary);width:14px;height:14px}
+.switch{position:relative;width:36px;height:20px;border-radius:10px;background:var(--dot-default);cursor:pointer;border:none;transition:background .2s}
+.switch.on{background:var(--seed-primary)}
+.switch::after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:var(--text-inverse);transition:left .2s}
+.switch.on::after{left:18px}
+/* 表格 */
+.table{width:100%;border-collapse:collapse;font-size:var(--seed-font)}
+.table th{background:var(--table-header-bg);text-align:left;padding:10px 12px;font-weight:500;border-bottom:1px solid var(--border-light);white-space:nowrap}
+.table td{padding:10px 12px;border-bottom:1px solid var(--border-light)}
+.table tbody tr:hover{background:var(--bg-hover)}
+.table tbody tr.selected{background:var(--table-row-selected)}
+.table .mono{font-family:ui-monospace,Menlo,monospace;font-size:12px;color:var(--text-2)}
+.table-toolbar{display:flex;gap:8px;margin-bottom:12px;align-items:center}
+.table-toolbar .spacer{flex:1}
+/* 标签（严重级别/状态）与状态点 */
+.tag{display:inline-block;padding:0 7px;font-size:12px;line-height:20px;border-radius:4px;border:1px solid}
+.tag-high{color:var(--tag-high-color);background:var(--tag-high-bg);border-color:var(--tag-high-border)}
+.tag-mid{color:var(--tag-mid-color);background:var(--tag-mid-bg);border-color:var(--tag-mid-border)}
+.tag-low{color:var(--tag-low-color);background:var(--tag-low-bg);border-color:var(--tag-low-border)}
+.tag-ok{color:var(--tag-ok-color);background:var(--tag-ok-bg);border-color:var(--tag-ok-border)}
+.tag-info{color:var(--tag-info-color);background:var(--tag-info-bg);border-color:var(--tag-info-border)}
+.dot{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:6px;vertical-align:middle}
+.dot-success{background:var(--dot-success)}
+.dot-error{background:var(--dot-error)}
+.dot-processing{background:var(--dot-processing)}
+.dot-warning{background:var(--dot-warning)}
+.dot-default{background:var(--dot-default)}
+/* Tab */
+.tabs{display:flex;gap:24px;border-bottom:1px solid var(--border-light);margin-bottom:16px}
+.tab{padding:8px 0;cursor:pointer;color:var(--text-2);border-bottom:2px solid transparent;margin-bottom:-1px}
+.tab:hover{color:var(--seed-primary)}
+.tab.active{color:var(--seed-primary);border-bottom-color:var(--seed-primary);font-weight:500}
+/* 抽屉 / 弹窗 */
+.mask{position:fixed;inset:0;background:var(--mask);display:none;z-index:10}
+.mask.open{display:block}
+.drawer{position:fixed;top:0;right:-420px;width:420px;height:100vh;background:var(--bg-container);box-shadow:var(--shadow-drawer);transition:right .2s;z-index:11;display:flex;flex-direction:column}
+.drawer.open{right:0}
+.drawer-head{padding:16px 24px;border-bottom:1px solid var(--border-light);font-weight:600;display:flex;justify-content:space-between}
+.drawer-body{padding:24px;flex:1;overflow:auto}
+.drawer-foot{padding:12px 24px;border-top:1px solid var(--border-light);display:flex;justify-content:flex-end;gap:8px}
+.close-x{cursor:pointer;color:var(--text-3)}
+.modal{position:fixed;top:30%;left:50%;transform:translateX(-50%);width:416px;background:var(--bg-container);border-radius:var(--seed-radius);box-shadow:var(--shadow-modal);z-index:12;display:none;padding:24px}
+.modal.open{display:block}
+.modal-title{font-weight:600;margin-bottom:8px}
+.modal-title .warn-icon{color:var(--seed-warning);margin-right:8px}
+.modal-body{color:var(--text-2);margin-bottom:20px}
+.modal-foot{display:flex;justify-content:flex-end;gap:8px}
+/* 提示条 / Toast */
+.alert{padding:8px 12px;border-radius:var(--seed-radius);border:1px solid;margin-bottom:8px;font-size:var(--seed-font)}
+.alert-info{background:var(--primary-bg);border-color:var(--primary-border)}
+.alert-warning{background:var(--warning-bg);border-color:var(--warning-border)}
+.alert-error{background:var(--danger-bg);border-color:var(--danger-border)}
+.alert-success{background:var(--success-bg);border-color:var(--success-border)}
+.toast{position:fixed;top:16px;left:50%;transform:translateX(-50%);background:var(--bg-container);box-shadow:var(--shadow-pop);border-radius:var(--seed-radius);padding:9px 16px;z-index:20;display:none}
+/* 空态 / 加载态 */
+.empty{text-align:center;padding:48px 0;color:var(--text-3)}
+.empty .empty-icon{font-size:40px;margin-bottom:8px;opacity:.5}
+.skeleton-line{height:14px;border-radius:4px;background:var(--skeleton-shimmer);background-size:400% 100%;animation:shimmer 1.4s ease infinite;margin-bottom:12px}
+@keyframes shimmer{0%{background-position:100% 50%}100%{background-position:0 50%}}
+/* 统计卡 / 描述列表 / 分页 */
+.stat-row{display:flex;gap:16px;margin-bottom:16px}
+.stat{flex:1;background:var(--bg-container);border:1px solid var(--border-light);border-radius:var(--seed-radius);padding:16px 20px}
+.stat .stat-label{color:var(--text-3);font-size:12px;margin-bottom:6px}
+.stat .stat-value{font-size:24px;font-weight:600}
+.stat .stat-value.danger{color:var(--seed-danger)}
+.desc{display:grid;grid-template-columns:100px 1fr 100px 1fr;gap:8px 16px;font-size:var(--seed-font)}
+.desc dt{color:var(--text-3)}
+.desc dd{color:var(--text-1)}
+.pagination{display:flex;gap:6px;justify-content:flex-end;margin-top:12px}
+.page-btn{min-width:28px;height:28px;line-height:26px;text-align:center;border:1px solid var(--border);border-radius:var(--seed-radius);cursor:pointer;background:var(--bg-container);font-size:13px}
+.page-btn.current{border-color:var(--seed-primary);color:var(--seed-primary)}
+/* 页面状态切换器（每页必备，演示 数据/加载/空 三态） */
+.state-switcher{position:fixed;right:16px;bottom:16px;background:var(--bg-container);border:1px solid var(--border);border-radius:var(--seed-radius);box-shadow:var(--shadow-pop);padding:8px;z-index:9;font-size:12px}
+.state-switcher b{display:block;margin-bottom:6px;color:var(--text-3);font-weight:500}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand"><span class="logo"></span><产品名></div>
+    <nav class="menu">
+      <!-- 菜单项与 _菜单模板.html 保持一致（校验器断言签名） -->
+      <a class="menu-item active">示例菜单一</a>
+      <a class="menu-item">示例菜单二</a>
+      <a class="menu-item">示例菜单三</a>
+    </nav>
+  </aside>
+  <div class="main">
+    <header class="topbar">
+      <span class="breadcrumb">一级导航 / <b>当前页面</b></span>
+      <span class="topbar-spacer"></span>
+      <span class="bell">🔔<span class="badge">3</span></span>
+      <span class="avatar">管</span>
+    </header>
+    <main class="content">
+      <div class="page-title">组件样例区</div>
+      <div class="page-desc">以下为本产品全部标准组件的用法示例。新建原型页时复制本文件后<b>删除本样例区</b>，按 PRD 第 5 章搭建页面内容。</div>
+
+      <div class="stat-row">
+        <div class="stat"><div class="stat-label">今日告警事件</div><div class="stat-value">128</div></div>
+        <div class="stat"><div class="stat-label">高危事件</div><div class="stat-value danger">7</div></div>
+        <div class="stat"><div class="stat-label">拦截处置</div><div class="stat-value">23</div></div>
+        <div class="stat"><div class="stat-label">成功率</div><div class="stat-value">99.2%</div></div>
+      </div>
+
+      <div class="card">
+        <h2>按钮 / 标签 / 状态点</h2>
+        <div class="row" style="margin-bottom:12px">
+          <button class="btn btn-primary">主操作</button>
+          <button class="btn">次操作</button>
+          <button class="btn btn-danger">危险操作</button>
+          <button class="btn btn-text">文字按钮</button>
+          <button class="btn" disabled>禁用</button>
+          <button class="btn btn-primary btn-sm">小按钮</button>
+        </div>
+        <div class="row">
+          <span class="tag tag-high">高危</span><span class="tag tag-mid">中危</span><span class="tag tag-low">低危</span>
+          <span class="tag tag-ok">成功</span><span class="tag tag-info">进行中</span>
+          <span><span class="dot dot-success"></span>运行中</span>
+          <span><span class="dot dot-error"></span>异常</span>
+          <span><span class="dot dot-processing"></span>同步中</span>
+          <span><span class="dot dot-warning"></span>降级</span>
+          <span><span class="dot dot-default"></span>未启用</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Tab / 表格 / 分页（数据态·加载态·空态由右下角切换器演示）</h2>
+        <div class="tabs">
+          <span class="tab active" onclick="switchTab(this,'panel-a')">全部</span>
+          <span class="tab" onclick="switchTab(this,'panel-b')">待处理</span>
+        </div>
+        <div id="panel-a">
+          <div class="table-toolbar">
+            <input class="input" style="width:240px" placeholder="搜索名称 / ID">
+            <select class="select" style="width:140px"><option>全部级别</option><option>高危</option></select>
+            <span class="spacer"></span>
+            <button class="btn btn-primary" onclick="openDrawer()">新建</button>
+          </div>
+          <div id="demo-data">
+            <table class="table">
+              <thead><tr><th><input type="checkbox" class="checkbox"></th><th>ID</th><th>名称</th><th>级别</th><th>状态</th><th>更新时间</th><th>操作</th></tr></thead>
+              <tbody>
+                <tr><td><input type="checkbox" class="checkbox"></td><td class="mono">SYS-0001</td><td>示例条目一</td><td><span class="tag tag-high">高危</span></td><td><span class="dot dot-success"></span>已启用</td><td class="mono">2026-08-12 10:00</td><td><button class="btn btn-text btn-sm" onclick="openDrawer()">编辑</button><button class="btn btn-text btn-sm" onclick="openModal()">删除</button></td></tr>
+                <tr class="selected"><td><input type="checkbox" class="checkbox" checked></td><td class="mono">USR-0002</td><td>示例条目二（选中行）</td><td><span class="tag tag-mid">中危</span></td><td><span class="dot dot-processing"></span>同步中</td><td class="mono">2026-08-12 09:30</td><td><button class="btn btn-text btn-sm">编辑</button></td></tr>
+                <tr><td><input type="checkbox" class="checkbox"></td><td class="mono">USR-0003</td><td>示例条目三</td><td><span class="tag tag-low">低危</span></td><td><span class="dot dot-default"></span>未启用</td><td class="mono">2026-08-11 18:22</td><td><button class="btn btn-text btn-sm">编辑</button></td></tr>
+              </tbody>
+            </table>
+            <div class="pagination"><span class="page-btn">‹</span><span class="page-btn current">1</span><span class="page-btn">2</span><span class="page-btn">3</span><span class="page-btn">›</span></div>
+          </div>
+          <div id="demo-loading" style="display:none">
+            <div class="skeleton-line" style="width:100%"></div>
+            <div class="skeleton-line" style="width:92%"></div>
+            <div class="skeleton-line" style="width:96%"></div>
+            <div class="skeleton-line" style="width:60%"></div>
+          </div>
+          <div id="demo-empty" style="display:none" class="empty">
+            <div class="empty-icon">📭</div>
+            <div>暂无数据</div>
+            <div style="margin-top:12px"><button class="btn btn-primary btn-sm" onclick="openDrawer()">新建第一条</button></div>
+          </div>
+        </div>
+        <div id="panel-b" style="display:none" class="empty"><div class="empty-icon">✅</div><div>没有待处理项</div></div>
+      </div>
+
+      <div class="card">
+        <h2>提示条 / 描述列表</h2>
+        <div class="alert alert-info">ℹ️ 信息提示：阈值 = 0 表示引擎使用出厂标定阈值。</div>
+        <div class="alert alert-warning">⚠️ 警告提示：该部门已被删除，本规则的部门范围已失效。</div>
+        <div class="alert alert-error">❌ 错误提示：SMTP 连接失败——connection refused (mail.corp.local:465)。</div>
+        <div class="alert alert-success" style="margin-bottom:16px">✅ 成功提示：测试消息已送达。</div>
+        <dl class="desc">
+          <dt>规则 ID</dt><dd class="mono">SYS-0001</dd><dt>创建人</dt><dd>管理员</dd>
+          <dt>状态</dt><dd><span class="dot dot-success"></span>已启用</dd><dt>更新时间</dt><dd class="mono">2026-08-12 10:00</dd>
+        </dl>
+      </div>
+
+      <div class="card">
+        <h2>表单（抽屉内为完整示例，此处为行内用法）</h2>
+        <div class="form-item" style="max-width:420px">
+          <label><span class="req">*</span>名称</label>
+          <input class="input" placeholder="请输入名称">
+          <div class="form-help">2-32 个字符；创建后不可修改。</div>
+        </div>
+        <div class="row">
+          <label class="row" style="gap:6px"><input type="checkbox" class="checkbox" checked>启用</label>
+          <span class="row" style="gap:6px"><button class="switch on" onclick="this.classList.toggle('on')" aria-label="开关"></button>接收 system 事件</span>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- 抽屉（新建/编辑通用形态） -->
+<div class="mask" id="mask" onclick="closeAll()"></div>
+<aside class="drawer" id="drawer">
+  <div class="drawer-head">新建条目<span class="close-x" onclick="closeAll()">✕</span></div>
+  <div class="drawer-body">
+    <div class="form-item"><label><span class="req">*</span>名称</label><input class="input" placeholder="请输入"></div>
+    <div class="form-item"><label><span class="req">*</span>级别</label>
+      <select class="select"><option>高危</option><option>中危</option><option>低危</option></select></div>
+    <div class="form-item"><label>说明</label><textarea class="textarea" rows="3" placeholder="选填"></textarea>
+      <div class="form-error" style="display:none">名称已存在</div></div>
+  </div>
+  <div class="drawer-foot"><button class="btn" onclick="closeAll()">取消</button><button class="btn btn-primary" onclick="closeAll();toast('已保存')">保存</button></div>
+</aside>
+
+<!-- 确认弹窗（危险操作通用形态；删除类须含审计告知句） -->
+<div class="modal" id="modal">
+  <div class="modal-title"><span class="warn-icon">⚠️</span>确认删除该条目？</div>
+  <div class="modal-body">删除后关联引用将置为失效。此操作将被审计记录。</div>
+  <div class="modal-foot"><button class="btn" onclick="closeAll()">取消</button><button class="btn btn-danger" onclick="closeAll();toast('已删除')">删除</button></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- 页面状态切换器：每个原型页必备 -->
+<div class="state-switcher">
+  <b>页面状态</b>
+  <button class="btn btn-sm" onclick="setState('data')">数据态</button>
+  <button class="btn btn-sm" onclick="setState('loading')">加载态</button>
+  <button class="btn btn-sm" onclick="setState('empty')">空态</button>
+</div>
+
+<script>
+// 骨架自带的最小交互：Tab / 抽屉 / 弹窗 / Toast / 状态切换。页面逻辑按需扩展。
+function switchTab(el, panelId){
+  el.parentElement.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  var panels=['panel-a','panel-b'];
+  panels.forEach(p=>{var n=document.getElementById(p); if(n) n.style.display=(p===panelId?'':'none');});
+}
+function openDrawer(){document.getElementById('mask').classList.add('open');document.getElementById('drawer').classList.add('open');}
+function openModal(){document.getElementById('mask').classList.add('open');document.getElementById('modal').classList.add('open');}
+function closeAll(){['mask','drawer','modal'].forEach(id=>document.getElementById(id).classList.remove('open'));}
+function toast(msg){var t=document.getElementById('toast');t.textContent=msg;t.style.display='block';setTimeout(()=>t.style.display='none',1600);}
+function setState(s){
+  var m={data:'demo-data',loading:'demo-loading',empty:'demo-empty'};
+  Object.values(m).forEach(id=>document.getElementById(id).style.display='none');
+  document.getElementById(m[s]).style.display='';
+}
+// 深链定位：?focus=<实体ID> 高亮目标行（跨页溯源协议）
+(function(){
+  var focus=new URLSearchParams(location.search).get('focus');
+  if(!focus) return;
+  document.querySelectorAll('.table tbody tr').forEach(tr=>{
+    if(tr.textContent.includes(focus)){tr.classList.add('selected');tr.scrollIntoView({block:'center'});}
+  });
+})();
+</script>
+</body>
+</html>
